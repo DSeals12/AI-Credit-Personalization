@@ -84,8 +84,8 @@ def generate_exposures(customers: pd.DataFrame, campaigns: pd.DataFrame) -> pd.D
 
         opened = rng.binomial(1, p_open)
         converted = rng.binomial(1, np.clip(0.20 * opened, 0, 1))
-        opt_out = rng.binomial(1, np.clip(0.003 + 0.003 * (c["channel"] == "SMS"), 0, 0.02))
-
+        p_opt_out = 0.01 + 0.01 * (c["channel"] == "SMS")  # 1% baseline, 2% for SMS
+        opt_out = rng.binomial(1, p_opt_out, size=n)
         send_dates = c["start_date"] + pd.to_timedelta(rng.integers(0, 7, size=n), unit="D")
 
         rows.append(pd.DataFrame({
@@ -97,7 +97,8 @@ def generate_exposures(customers: pd.DataFrame, campaigns: pd.DataFrame) -> pd.D
             "converted": converted,
             "opt_out": opt_out
         }))
-
+    print("Opt-out sample:", opt_out[:20])
+    print("Opt-out rate for this campaign:", opt_out.mean())
     return pd.concat(rows, ignore_index=True)
 
 
